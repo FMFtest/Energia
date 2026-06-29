@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sprawdzian z Fizyki – Energia</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
+    :root {
+      --bg: #f0f2f5; --surface: #ffffff; --surface2: #f8f9fc;
+      --border: #e2e5ed; --accent: #1a56db; --accent2: #0e9f6e;
+      --danger: #e02424; --warn: #d97706; --text: #111827;
+      --muted: #6b7280; --radius: 14px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+    header { background:var(--text); color:#fff; padding:12px 20px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; position:sticky; top:0; z-index:100; }
+    .logo { font-family:'Syne',sans-serif; font-weight:800; font-size:16px; white-space:nowrap; }
+    .logo span { color:#60a5fa; }
+    .header-right { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+    .timer { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; color:#60a5fa; letter-spacing:2px; white-space:nowrap; }
+    .timer.warn   { color:#fbbf24; }
+    .timer.danger { color:#f87171; animation:blink .7s infinite; }
+    .badge { display:flex; align-items:center; gap:6px; background:rgba(224,36,36,0.15); border:1px solid rgba(224,36,36,0.3); border-radius:100px; padding:5px 12px; font-size:12px; font-weight:500; color:#f87171; white-space:nowrap; }
+    .dot { width:7px; height:7px; border-radius:50%; background:#f87171; animation:blink 1.2s infinite; flex-shrink:0; }
+    main { flex:1; padding:28px 16px 48px; display:flex; flex-direction:column; align-items:center; gap:24px; }
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:28px; width:100%; max-width:760px; }
+    .title-card { background:var(--text); color:#fff; border:none; padding:32px 28px; }
+    .title-card .subject { font-family:'Syne',sans-serif; font-size:26px; font-weight:800; margin-bottom:8px; }
+    .title-card .topics  { font-size:13px; color:#9ca3af; line-height:1.6; margin-bottom:18px; }
+    .meta-row  { display:flex; gap:16px; flex-wrap:wrap; }
+    .meta-pill { background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:8px 14px; font-size:13px; font-weight:500; }
+    .meta-pill strong { color:#60a5fa; }
+    .card-title { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; margin-bottom:16px; }
+    .scale-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; margin-top:14px; }
+    .scale-cell { background:var(--surface2); border:1px solid var(--border); border-radius:8px; text-align:center; padding:8px 4px; }
+    .scale-cell .pts   { font-size:11px; color:var(--muted); }
+    .scale-cell .grade { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; color:var(--accent); }
+    .fields-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    @media(max-width:500px){ .fields-row{ grid-template-columns:1fr; } }
+    label { display:flex; flex-direction:column; gap:6px; font-size:13px; font-weight:500; color:var(--muted); }
+    label input { font-family:'DM Sans',sans-serif; font-size:17px; padding:11px 14px; border:1.5px solid var(--border); border-radius:10px; outline:none; transition:border-color .2s; background:var(--surface2); color:var(--text); }
+    label input:focus { border-color:var(--accent); background:#fff; }
+    /* PRIVACY NOTICE */
+    .privacy-notice { background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:16px 18px; margin-top:16px; display:flex; gap:12px; align-items:flex-start; }
+    .privacy-notice .pn-icon { font-size:20px; flex-shrink:0; margin-top:2px; }
+    .privacy-notice .pn-text { font-size:12px; color:#1e40af; line-height:1.6; }
+    .privacy-checkbox { display:flex; align-items:flex-start; gap:10px; margin-top:14px; cursor:pointer; }
+    .privacy-checkbox input[type="checkbox"] { width:18px; height:18px; margin-top:2px; flex-shrink:0; cursor:pointer; accent-color:var(--accent); }
+    .privacy-checkbox span { font-size:13px; color:var(--muted); line-height:1.5; }
+    .btn-start { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; background:var(--accent); color:#fff; border:none; border-radius:12px; padding:16px 48px; cursor:pointer; transition:opacity .2s, transform .15s; width:100%; margin-top:12px; }
+    .btn-start:hover    { opacity:.88; transform:translateY(-1px); }
+    .btn-start:disabled { opacity:.35; cursor:not-allowed; transform:none; }
+    .progress-wrap { width:100%; max-width:760px; }
+    .progress-info { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-bottom:8px; font-weight:500; }
+    .progress-bar  { height:6px; background:var(--border); border-radius:100px; overflow:hidden; }
+    .progress-fill { height:100%; background:var(--accent); border-radius:100px; transition:width .4s ease; }
+    .section-badge { display:inline-flex; align-items:center; gap:8px; background:var(--surface2); border:1px solid var(--border); border-radius:100px; padding:6px 14px; font-size:12px; font-weight:600; color:var(--muted); margin-bottom:16px; }
+    .section-badge.partA { background:#eff6ff; border-color:#bfdbfe; color:var(--accent); }
+    .section-badge.partB { background:#f0fdf4; border-color:#bbf7d0; color:var(--accent2); }
+    .q-text { font-size:19px; font-weight:500; line-height:1.6; margin-bottom:20px; color:var(--text); }
+    .options { display:flex; flex-direction:column; gap:10px; margin-bottom:24px; }
+    .option { display:flex; align-items:flex-start; gap:12px; padding:13px 16px; border:1.5px solid var(--border); border-radius:12px; cursor:pointer; transition:all .18s; background:var(--surface2); }
+    .option:hover { border-color:var(--accent); background:#eff6ff; }
+    .option input[type="radio"] { display:none; }
+    .option.selected { border-color:var(--accent); background:#eff6ff; }
+    .option.selected .opt-key { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .opt-key { font-family:'Syne',sans-serif; font-weight:700; font-size:13px; width:30px; height:30px; border-radius:8px; border:1.5px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all .18s; background:#fff; }
+    .opt-text { font-size:16px; line-height:1.5; padding-top:5px; }
+    .answer-note { font-size:14px; color:var(--muted); font-style:italic; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:8px 12px; margin-bottom:12px; }
+    .numeric-wrap { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:24px; }
+    .numeric-label { font-size:13px; font-weight:600; color:var(--muted); white-space:nowrap; }
+    .numeric-input { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; width:160px; padding:12px 16px; border:2px solid var(--border); border-radius:10px; outline:none; text-align:center; background:var(--surface2); color:var(--text); transition:border-color .2s; }
+    .numeric-input:focus { border-color:var(--accent); background:#fff; }
+    .unit-label { font-size:14px; color:var(--muted); font-weight:600; }
+    .notebook-warn { display:flex; gap:12px; align-items:flex-start; background:#fffbeb; border:1px solid #fde68a; border-radius:12px; padding:16px; margin-bottom:20px; }
+    .notebook-warn .nw-icon { font-size:22px; flex-shrink:0; }
+    .notebook-warn .nw-text { font-size:15px; color:#92400e; line-height:1.6; }
+    .notebook-warn .nw-text strong { color:#78350f; }
+    .btn-next { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; background:var(--accent); color:#fff; border:none; border-radius:12px; padding:14px 40px; cursor:pointer; transition:opacity .2s, transform .15s; }
+    .btn-next:hover    { opacity:.88; transform:translateY(-1px); }
+    .btn-next:disabled { opacity:.35; cursor:not-allowed; transform:none; }
+    .btn-submit { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; background:var(--accent2); color:#fff; border:none; border-radius:12px; padding:16px 48px; cursor:pointer; transition:opacity .2s, transform .15s; width:100%; }
+    .btn-submit:hover    { opacity:.88; transform:translateY(-1px); }
+    .btn-submit:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+    .submit-note { font-size:12px; color:var(--muted); text-align:center; margin-top:10px; }
+    #overlay { display:none; position:fixed; inset:0; z-index:999; background:rgba(17,24,39,0.85); backdrop-filter:blur(10px); align-items:center; justify-content:center; }
+    #overlay.show { display:flex; }
+    .overlay-card { background:#fff; border-radius:20px; padding:40px 36px; max-width:420px; width:90%; text-align:center; box-shadow:0 24px 80px rgba(0,0,0,0.25); animation:slideUp .3s ease; }
+    .overlay-icon  { font-size:52px; margin-bottom:14px; }
+    .overlay-title { font-family:'Syne',sans-serif; font-size:20px; font-weight:800; margin-bottom:10px; color:var(--warn); }
+    .overlay-msg   { font-size:14px; color:var(--muted); line-height:1.6; margin-bottom:24px; }
+    .overlay-left  { font-size:13px; color:var(--muted); margin-bottom:20px; }
+    .overlay-left strong { color:var(--danger); font-size:17px; }
+    .btn-back { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; background:var(--text); color:#fff; border:none; border-radius:10px; padding:13px 32px; cursor:pointer; }
+    #ended, #success { display:none; position:fixed; inset:0; z-index:1000; align-items:center; justify-content:center; flex-direction:column; text-align:center; gap:18px; padding:24px; }
+    #ended.show   { display:flex; background:var(--text); }
+    #success.show { display:flex; background:#fff; }
+    .ended-icon    { font-size:72px; animation:fadeIn .5s ease; }
+    .ended-title   { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; color:#f87171; animation:fadeIn .5s ease .1s both; }
+    .ended-sub     { font-size:15px; color:#9ca3af; max-width:360px; line-height:1.6; animation:fadeIn .5s ease .2s both; }
+    .success-icon  { font-size:80px; animation:pop .5s ease; }
+    .success-title { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; color:var(--accent2); animation:fadeIn .5s ease .1s both; }
+    .success-sub   { font-size:15px; color:var(--muted); max-width:360px; line-height:1.6; animation:fadeIn .5s ease .2s both; }
+    footer { text-align:center; padding:14px; font-size:11px; color:var(--muted); border-top:1px solid var(--border); }
+    .hidden { display:none !important; }
+    @keyframes blink   { 0%,100%{opacity:1} 50%{opacity:.3} }
+    @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+    @keyframes fadeIn  { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes pop     { 0%{transform:scale(.5);opacity:0} 80%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
+    @keyframes slideIn { from{transform:translateX(40px);opacity:0} to{transform:translateX(0);opacity:1} }
+    .slide-in { animation:slideIn .3s ease; }
+  </style>
+</head>
+<body>
+<header>
+  <div class="logo">⚡ <span>TestGuard</span> · Energia</div>
+  <div class="header-right">
+    <div class="badge"><div class="dot"></div>Naruszenia: <span id="vCount">0</span>/2</div>
+    <div class="timer" id="timer">40:00</div>
+  </div>
+</header>
+<main id="mainContent">
+  <!-- EKRAN STARTOWY -->
+  <div id="screenStart">
+    <div class="card title-card">
+      <div class="subject">Sprawdzian z Fizyki — Energia</div>
+      <div class="topics">Praca mechaniczna · Energia kinetyczna · Energia potencjalna · Prawo Hooke’a · Zasada zachowania energii · Moc · Sprawność</div>
+      <div class="meta-row">
+        <div class="meta-pill">Wariant: <strong id="wariantLabel">—</strong></div>
+        <div class="meta-pill">Czas: <strong>40 min</strong></div>
+        <div class="meta-pill">Punkty: <strong>10 pkt</strong></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Skala ocen</div>
+      <div class="scale-grid">
+        <div class="scale-cell"><div class="pts">10 pkt</div><div class="grade">4</div></div>
+        <div class="scale-cell"><div class="pts">9–9,5</div><div class="grade">4−</div></div>
+        <div class="scale-cell"><div class="pts">8–8,5</div><div class="grade">3+</div></div>
+        <div class="scale-cell"><div class="pts">7–7,5</div><div class="grade">3</div></div>
+        <div class="scale-cell"><div class="pts">6–6,5</div><div class="grade">3−</div></div>
+        <div class="scale-cell"><div class="pts">5–5,5</div><div class="grade">2+</div></div>
+        <div class="scale-cell"><div class="pts">4–4,5</div><div class="grade">2</div></div>
+        <div class="scale-cell"><div class="pts">3–3,5</div><div class="grade">2−</div></div>
+        <div class="scale-cell"><div class="pts">2–2,5</div><div class="grade">1+</div></div>
+        <div class="scale-cell"><div class="pts">0–1,5</div><div class="grade">1</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">👤 Dane ucznia</div>
+      <div class="fields-row">
+        <label>Imię i nazwisko
+          <input type="text" id="nazwisko" placeholder="np. Jan Kowalski" autocomplete="off" oninput="checkStart()"/>
+        </label>
+        <label>Klasa
+          <input type="text" id="klasa" placeholder="np. 1A" autocomplete="off" oninput="checkStart()"/>
+        </label>
+      </div>
+      <!-- 8. INFORMACJA O PRZETWARZANIU DANYCH -->
+      <div class="privacy-notice">
+        <div class="pn-icon">🔒</div>
+        <div class="pn-text">
+          Podczas rozwiązywania testu system rejestruje wybrane informacje techniczne: czas rozpoczęcia i zakończenia testu oraz zdarzenia związane z opuszczeniem okna testowego (np. zmianę karty przeglądarki). Dane te są przetwarzane wyłącznie w celu zapewnienia rzetelności procesu oceniania oraz przeciwdziałania nieuczciwym praktykom.
+        </div>
+      </div>
+      <label class="privacy-checkbox">
+        <input type="checkbox" id="privacyCheck" onchange="checkStart()"/>
+        <span>Zapoznałem/am się z informacją o przetwarzaniu danych i wyrażam zgodę na rozpoczęcie sprawdzianu.</span>
+      </label>
+      <button class="btn-start" id="btnStart" disabled onclick="startTest()">
+        Rozpocznij sprawdzian →
+      </button>
+    </div>
+  </div>
+  <!-- EKRAN PYTANIA -->
+  <div id="screenQuestion" class="hidden">
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span id="progressLabel">Pytanie 1 z 8</span>
+        <span id="progressPts"></span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+    <div class="card slide-in" id="questionCard">
+      <div id="sectionBadge" class="section-badge partA">Część A · 0,5 pkt</div>
+      <div class="q-text" id="qText"></div>
+      <div class="options hidden" id="optionsBlock">
+        <label class="option" id="opt0"><input type="radio" name="qopt" value="0"/><div class="opt-key">A</div><div class="opt-text" id="optText0"></div></label>
+        <label class="option" id="opt1"><input type="radio" name="qopt" value="1"/><div class="opt-key">B</div><div class="opt-text" id="optText1"></div></label>
+        <label class="option" id="opt2"><input type="radio" name="qopt" value="2"/><div class="opt-key">C</div><div class="opt-text" id="optText2"></div></label>
+        <label class="option" id="opt3"><input type="radio" name="qopt" value="3"/><div class="opt-key">D</div><div class="opt-text" id="optText3"></div></label>
+      </div>
+      <div class="hidden" id="numericBlock">
+        <div class="notebook-warn">
+          <div class="nw-icon">📝</div>
+          <div class="nw-text">Zapisuj pełne rozwiązania w <strong>zeszycie</strong>. Sporne kwestie oceniania będą rozpatrywane <strong>wyłącznie na podstawie rozwiązania w zeszycie</strong>.</div>
+        </div>
+        <div class="answer-note">✏️ Wpisz tylko wynik liczbowy — bez jednostek (jednostka: <strong id="unitHint"></strong>). Możesz użyć kropki lub przecinka.</div>
+        <div class="numeric-wrap">
+          <span class="numeric-label">Odpowiedź:</span>
+          <input class="numeric-input" type="number" id="numericAns" placeholder="0" step="any" oninput="checkNext()"/>
+          <span class="unit-label" id="unitLabel"></span>
+        </div>
+      </div>
+      <button class="btn-next" id="btnNext" disabled onclick="nextQuestion()">Dalej →</button>
+    </div>
+  </div>
+  <!-- EKRAN KOŃCOWY -->
+  <div id="screenSummary" class="hidden">
+    <div class="card title-card">
+      <div class="subject">✅ Sprawdzian ukończony</div>
+     
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Podsumowanie</div>
+      <div id="summaryContent" style="font-size:14px; color:var(--muted); line-height:2;"></div>
+      <button class="btn-submit" id="btnSubmit" onclick="submitTest()" style="margin-top:20px;">
+        <span id="btnText">Wyślij sprawdzian</span>
+      </button>
+      <div class="submit-note">Po wysłaniu nie możesz wrócić do odpowiedzi.</div>
+    </div>
+  </div>
+</main>
+<footer>TestGuard</footer>
+<div id="overlay">
+  <div class="overlay-card">
+    <div class="overlay-icon">⚠️</div>
+    <div class="overlay-title">Uwaga! Naruszenie</div>
+    <div class="overlay-msg">Opuściłeś stronę sprawdzianu. To zostało zarejestrowane.<br>Jeszcze jedno naruszenie — sprawdzian zostanie zakończony.</div>
+    <div class="overlay-left">Pozostało prób: <strong id="attemptsLeft">1</strong></div>
+    <button class="btn-back" onclick="closeOverlay()">Wróć do sprawdzianu</button>
+  </div>
+</div>
+<div id="ended">
+  <div class="ended-icon">🚫</div>
+  <div class="ended-title">Sprawdzian zakończony</div>
+  <div class="ended-sub">Zarejestrowano 2 naruszenia: opuszczenie strony.<br>Skontaktuj się z nauczycielem.</div>
+</div>
+<div id="success">
+  <div class="success-icon">✅</div>
+  <div class="success-title">Dziękujemy!</div>
+  <div class="success-sub">Twoje odpowiedzi zostały zapisane.<br>Możesz zamknąć tę stronę.</div>
+</div>
+<script>
+// ══════════════════════════════════════════════
+
+// ══════════════════════════════════════════════
+const TEST_MINUTES   = 40;
+const MAX_VIOLATIONS = 2;
+
+
+
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxFOjqC5PeQw5Q0iVAupLBsgUrCU33JFeIlcRc1Ygj0hODt_-QHJHrlIhMFTSTRNpjsaA/exec";
+const SECRET_TOKEN = "en3rg_2026_xP4w"; //
+
+
+const SESSION_ID = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function rnd(min, max, step = 1) {
+  const steps = Math.floor((max - min) / step);
+  return min + Math.floor(Math.random() * (steps + 1)) * step;
+}
+
+
+function buildVariant(id) {
+  // correctPool = [1,2,2,2,2,0,1,1]
+  const questionPool = [
+    // Q0 — Praca mechaniczna
+    { q:"Praca mechaniczna siły F jest różna od zera, gdy:",
+      opts:["siła działa na ciało, ale ciało jest w spoczynku.",
+            "składowa siły wzdłuż kierunku ruchu jest różna od zera.",
+            "ciało porusza się, lecz siła jest prostopadła do ruchu.",
+            "masa ciała jest bardzo duża."] },
+    // Q1 — Energia kinetyczna
+    { q:"Energia kinetyczna ciała o masie m poruszającego się z prędkością v wynosi:",
+      opts:["Eₖ = mv","Eₖ = mv²","Eₖ = ½mv²","Eₖ = 2mv²"] },
+    // Q2 — Prawo Hooke'a
+    { q:"Zgodnie z prawem Hooke’a, siła sprężystości sprężyny jest:",
+      opts:["wprost proporcjonalna do kwadratu wydłużenia.",
+            "stała i niezależna od wydłużenia.",
+            "wprost proporcjonalna do wydłużenia i skierowana przeciwnie do odkształcenia.",
+            "odwrotnie proporcjonalna do wydłużenia."] },
+    // Q3 — Moc
+    { q:"Moc to:",
+      opts:["iloczyn siły i drogi.",
+            "iloraz energii i masy.",
+            "iloraz pracy i czasu, w którym praca została wykonana.",
+            "iloczyn energii kinetycznej i czasu."] },
+    // Q4 — Energia potencjalna grawitacyjna
+    { q:"Energia potencjalna grawitacyjna ciała o masie m na wysokości h wynosi:",
+      opts:["Eₚ = mgh²","Eₚ = ½mgh","Eₚ = mgh","Eₚ = mg/h"] },
+    // Q5 — Zasada zachowania energii
+    { q:"Zasada zachowania energii mechanicznej mówi, że w układzie bez sił niepotencjalnych:",
+      opts:["suma energii kinetycznej i potencjalnej pozostaje stała.",
+            "energia kinetyczna jest zawsze równa potencjalnej.",
+            "energia mechaniczna maleje proporcjonalnie do prędkości.",
+            "praca sił zewnętrznych jest zawsze zero."] },
+    // Q6 — Sprawność
+    { q:"Sprawność urządzenia η definiuje się jako:",
+      opts:["η = moc oddana / moc pobrana",
+            "η = praca użyteczna / praca całkowita dostarczona",
+            "η = praca całkowita / moc",
+            "η = moc pobrana / praca użyteczna"] },
+    // Q7 — Energia sprężystości
+    { q:"Energia potencjalna sprężystości sprężyny o stałej k, rozciągniętej o x wynosi:",
+      opts:["Eₚ = kx","Eₚ = ½kx²","Eₚ = 2kx²","Eₚ = kx²"] }
+  ];
+  const correctPool = [1,2,2,2,2,0,1,1];
+
+  function makeOpenPool() {
+    const m1=rnd(2,10,2), v1=rnd(4,16,4);
+    const m2=rnd(5,20,5), h1=rnd(5,20,5), g=10;
+    const k1=rnd(200,800,200), x1=parseFloat((rnd(5,20,5)/100).toFixed(2));
+    const P1=rnd(100,800,100), t1=rnd(10,60,10), s1=rnd(20,100,20);
+    const m3=rnd(2,8,2), W1=rnd(500,4000,500), t2=rnd(5,40,5);
+    const m4=rnd(3,9,3), v2=rnd(6,18,2), g2=10;
+    const m5=rnd(5,15,5), h2=rnd(10,40,10), h3=rnd(1,5,1);
+    const W2=rnd(2000,10000,1000), eta=rnd(60,90,10)/100, t3=rnd(10,60,10);
+    const k2=rnd(300,900,300), x2=parseFloat((rnd(3,12,3)/100).toFixed(2)), m6=rnd(1,5,1);
+
+    return [
+      // P0: Ek=½mv²
+      { q:`Ciało o masie m = ${m1} kg porusza się z prędkością v = ${v1} m/s. Oblicz jego energię kinetyczną.`,
+        unit:"J", params:`m=${m1} v=${v1}`, hint:"Ek = ½·m·v²" },
+      // P1: Ep=mgh, v=sqrt(2gh) — uczeń wpisuje v przy upadku
+      { q:`Ciało o masie m = ${m2} kg spada z wysokości h = ${h1} m (g = 10 m/s²). Oblicz jego prędkość tuż przed uderzeniem w ziemię (zasada zachowania energii).`,
+        unit:"m/s", params:`m=${m2} h=${h1}`, hint:"v = √(2·g·h)" },
+      // P2: Ep=½kx², v=sqrt(2Ep/m) — uczeń wpisuje v
+      { q:`Sprężyna (k = ${k1} N/m) jest ściśnięta o x = ${x1} m i uwalnia masę m = ${m1} kg. Oblicz prędkość masy po zwolnieniu.`,
+        unit:"m/s", params:`k=${k1} x=${x1} m=${m1}`, hint:"Ep=½kx², v=√(2Ep/m)" },
+      // P3: W=P*t, F=W/s — uczeń wpisuje siłę
+      { q:`Silnik o mocy P = ${P1} W pracuje przez t = ${t1} s i przesuwa przedmiot na drodze s = ${s1} m. Oblicz wartość siły napędowej.`,
+        unit:"N", params:`P=${P1} t=${t1} s=${s1}`, hint:"W=P·t, F=W/s" },
+      // P4: Ek=½mv², h=Ek/(mg) — uczeń wpisuje h
+      { q:`Ciało o masie m = ${m4} kg porusza się z prędkością v = ${v2} m/s. Na jaką maksymalną wysokość może wznieść się (g = 10 m/s²)?`,
+        unit:"m", params:`m=${m4} v=${v2}`, hint:"Ek=½mv², h=Ek/(m·g)" },
+      // P5: ΔEp=mg(h1-h2), v=sqrt(2ΔEp/m) — uczeń wpisuje v
+      { q:`Ciało o masie m = ${m5} kg spada z h₁ = ${h2} m do h₂ = ${h3} m (g = 10 m/s²). Oblicz prędkość w punkcie h₂.`,
+        unit:"m/s", params:`m=${m5} h1=${h2} h2=${h3}`, hint:"ΔEp=mg(h₁−h₂), v=√(2ΔEp/m)" },
+      // P6: W_uz=eta*W, P=W_uz/t — uczeń wpisuje moc użyteczną
+      { q:`Urządzenie o sprawności η = ${Math.round(eta*100)}% pobiera energię W = ${W2} J w czasie t = ${t3} s. Oblicz moc użyteczną.`,
+        unit:"W", params:`eta=${eta} W=${W2} t=${t3}`, hint:"W_uż=η·W, P=W_uż/t" },
+      // P7: Ep=½kx², v=sqrt(2Ep/m) — uczeń wpisuje v
+      { q:`Sprężyna (k = ${k2} N/m) ściśnięta o x = ${x2} m uwalnia masę m = ${m6} kg. Oblicz prędkość masy po zwolnieniu.`,
+        unit:"m/s", params:`k=${k2} x=${x2} m=${m6}`, hint:"Ep=½kx², v=√(2Ep/m)" }
+    ];
+  }
+
+  const poolWithIdx = questionPool.map((q,i) => ({...q, origIdx:i, correct:correctPool[i], part:'A'}));
+  const selectedA   = shuffle(poolWithIdx).slice(0,4);
+  const openPool    = makeOpenPool();
+  const openWithIdx = openPool.map((q,i) => ({...q, origIdx:i, part:'B'}));
+  const selectedB   = shuffle(openWithIdx).slice(0,4);
+  return [...shuffle(selectedA), ...selectedB];
+}
+
+
+// ── INIT ──────────────────────────────────────
+const params  = new URLSearchParams(window.location.search);
+const wariant = (params.get('wariant') || 'A').toUpperCase();
+document.getElementById('wariantLabel').textContent = 'Wariant ' + wariant;
+
+let allQuestions = [];
+let currentIdx   = 0;
+let answers      = [];   // { part, origIdx, answer, displayedOpt }
+let testStarted  = false;
+let startTime    = null;
+
+// ══════════════════════════════════════════════
+
+// ══════════════════════════════════════════════
+function buildPayload(status) {
+  const nazwisko = document.getElementById('nazwisko').value.trim() || '(brak)';
+  const klasa    = document.getElementById('klasa').value.trim()    || '(brak)';
+  const tAns    = ['—','—','—','—'];
+  const tCorr   = [-1,-1,-1,-1];
+  const oAns    = ['—','—','—','—'];
+  const oParams = ['—','—','—','—'];
+ 
+  // allQuestions[0-3]=A, [4-7]=B — stała pozycja (v4)
+  allQuestions.forEach((q, pos) => {
+    const a = answers[pos];
+    if (q.part==='A') {
+      if (a && a.part==='A') {
+        tAns[pos]  = a.answer;
+        tCorr[pos] = a.correct;
+      }
+    } else {
+      const bSlot = pos - 4;
+      if (a && a.part==='B') {
+        oAns[bSlot]    = a.answer;
+        oParams[bSlot] = 'origIdx=' + a.origIdx + ' ' + (a.params || '');
+      }
+    }
+  });
+  const now = new Date();
+  const elapsed = startTime ? Math.floor((Date.now()-startTime)/60000) : 0;
+  return {
+    token: SECRET_TOKEN,  
+    sessionId: SESSION_ID,
+    nazwisko, klasa, wariant,
+    data: now.toLocaleDateString('pl-PL') + ' ' + now.toLocaleTimeString('pl-PL'),
+    czas: elapsed + ' min',
+    naruszenia: violations,
+    status,
+
+    t1:tAns[0], t2:tAns[1], t3:tAns[2], t4:tAns[3],
+    tCorrect: tCorr.join(','),
+    o5:oAns[0], o6:oAns[1], o7:oAns[2], o8:oAns[3],
+    p5:oParams[0], p6:oParams[1], p7:oParams[2], p8:oParams[3]
+  };
+}
+
+function sendData(status) {
+  fetch(SCRIPT_URL, {
+    method:'POST', mode:'no-cors',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(buildPayload(status))
+  }).catch(e => console.warn('Błąd wysyłania:', e));
+}
+
+// ── CHECKSTART ────────────────────────────────
+function checkStart() {
+  const n = document.getElementById('nazwisko').value.trim();
+  const k = document.getElementById('klasa').value.trim();
+  const c = document.getElementById('privacyCheck').checked;
+  document.getElementById('btnStart').disabled = !(n.length>=2 && k.length>=1 && c);
+}
+
+// ── START ─────────────────────────────────────
+function startTest() {
+  const n = document.getElementById('nazwisko').value.trim();
+  const k = document.getElementById('klasa').value.trim();
+  if (!n || !k) return;
+  allQuestions = buildVariant(wariant);
+  answers = new Array(allQuestions.length).fill(null);
+  testStarted = true;
+  startTime   = Date.now();
+
+  sendData('⏳ ROZPOCZĘTO');
+
+  document.getElementById('screenStart').classList.add('hidden');
+  document.getElementById('screenQuestion').classList.remove('hidden');
+  startTimer();
+  showQuestion(0);
+}
+
+
+function showQuestion(idx) {
+  currentIdx = idx;
+  const q = allQuestions[idx];
+  const total = allQuestions.length;
+  document.getElementById('progressLabel').textContent = `Pytanie ${idx+1} z ${total}`;
+  document.getElementById('progressPts').textContent   = q.part==='A' ? '0,5 pkt' : '2 pkt';
+  document.getElementById('progressFill').style.width  = ((idx/total)*100)+'%';
+  const badge = document.getElementById('sectionBadge');
+  badge.className = 'section-badge '+(q.part==='A'?'partA':'partB');
+  badge.textContent = q.part==='A' ? 'Część A · 0,5 pkt' : 'Część B · 2 pkt';
+  document.getElementById('qText').textContent = q.q;
+  document.getElementById('btnNext').disabled = true;
+  document.getElementById('btnNext').textContent = idx===total-1 ? 'Zakończ sprawdzian →' : 'Dalej →';
+  const optBlock = document.getElementById('optionsBlock');
+  const numBlock = document.getElementById('numericBlock');
+  if (q.part==='A') {
+    optBlock.classList.remove('hidden');
+    numBlock.classList.add('hidden');
+    const optIndices = shuffle([0,1,2,3]);
+    optIndices.forEach((origOpt, displayPos) => {
+      const letters = ['A','B','C','D'];
+      const optEl   = document.getElementById(`opt${displayPos}`);
+      optEl.className = 'option';
+      optEl.querySelector('input').checked = false;
+      optEl.querySelector('.opt-key').textContent  = letters[displayPos];
+      optEl.querySelector('.opt-text').textContent = q.opts[origOpt];
+      optEl.onclick = (function(op,el,oo){ return function(){ selectOpt(op,el,oo); }; })(displayPos,optEl,origOpt);
+    });
+    q._optMap = optIndices;
+  } else {
+    optBlock.classList.add('hidden');
+    numBlock.classList.remove('hidden');
+    document.getElementById('unitHint').textContent  = q.unit;
+    document.getElementById('unitLabel').textContent = q.unit;
+    document.getElementById('numericAns').value = '';
+  }
+  const card = document.getElementById('questionCard');
+  card.classList.remove('slide-in');
+  void card.offsetWidth;
+  card.classList.add('slide-in');
+}
+
+let selectedOptDisplayIdx = null;
+let selectedOrigOptIdx    = null;
+
+function selectOpt(displayIdx, el, origOpt) {
+  document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedOptDisplayIdx = displayIdx;
+  selectedOrigOptIdx    = origOpt;
+  document.getElementById('btnNext').disabled = false;
+}
+
+function checkNext() {
+  const val = document.getElementById('numericAns').value.trim();
+  document.getElementById('btnNext').disabled = (val==='');
+}
+
+function nextQuestion() {
+  const q = allQuestions[currentIdx];
+  if (q.part==='A') {
+    const letters = ['A','B','C','D'];
+
+    answers[currentIdx] = {
+      part:'A', origIdx:q.origIdx,
+      answer: letters[selectedOrigOptIdx],
+      correct: q.correct
+    };
+    selectedOptDisplayIdx = null;
+    selectedOrigOptIdx    = null;
+  } else {
+    const raw = document.getElementById('numericAns').value.trim();
+    answers[currentIdx] = {
+      part:'B', origIdx:q.origIdx,
+      answer: raw,
+      params: q.params || ''
+    };
+  }
+
+  const answered = answers.filter(Boolean).length;
+  const totalQ   = allQuestions.length;
+  const isLastQ  = currentIdx+1 >= totalQ;
+
+  if (!isLastQ) {
+    sendData(`🔄 W TRAKCIE (${answered}/${totalQ})`);
+    showQuestion(currentIdx+1);
+  } else {
+  
+    sendData('✅ UKOŃCZONO');
+    showSummary();
+  }
+}
+
+function calcLocalScore() {
+
+  let scoreA=0, scoreB=0;
+  answers.forEach(a => {
+    if (!a) return;
+    if (a.part==='A') {
+      const letters = ['A','B','C','D'];
+      const userIdx = letters.indexOf(a.answer);
+      const correct = a.correct;
+      if (userIdx === correct) scoreA += 0.5;
+    }
+    if (a.part==='B') {
+   
+      const p = {};
+      (a.params||'').split(' ').forEach(s => {
+        const [k,v] = s.split('=');
+        if (k&&v) p[k]=parseFloat(v);
+      });
+      let correct = null;
+      // P0: Ek=½mv²
+      if (a.origIdx===0) correct=[Math.round(0.5*p.m*p.v*p.v*100)/100];
+      // P1: v=sqrt(2*g*h)
+      else if (a.origIdx===1) correct=[Math.round(Math.sqrt(2*10*p.h)*100)/100];
+      // P2: Ep=½kx², v=sqrt(2Ep/m)
+      else if (a.origIdx===2) { const ep=0.5*p.k*p.x*p.x; correct=[Math.round(Math.sqrt(2*ep/p.m)*100)/100]; }
+      // P3: W=P*t, F=W/s
+      else if (a.origIdx===3) { const w=p.P*p.t; correct=[Math.round(w/p.s*100)/100]; }
+      // P4: Ek=½mv², h=Ek/(m*g)
+      else if (a.origIdx===4) { const ek=0.5*p.m*p.v*p.v; correct=[Math.round(ek/(p.m*10)*100)/100]; }
+      // P5: ΔEp=mg(h1-h2), v=sqrt(2ΔEp/m)
+      else if (a.origIdx===5) { const dep=p.m*10*(p.h1-p.h2); correct=[Math.round(Math.sqrt(2*dep/p.m)*100)/100]; }
+      // P6: W_uz=eta*W, P=W_uz/t
+      else if (a.origIdx===6) { const wuz=p.eta*p.W; correct=[Math.round(wuz/p.t*100)/100]; }
+      // P7: Ep=½kx², v=sqrt(2Ep/m)
+      else if (a.origIdx===7) { const ep=0.5*p.k*p.x*p.x; correct=[Math.round(Math.sqrt(2*ep/p.m)*100)/100]; }
+      if (correct) {
+        const v = parseFloat(String(a.answer).replace(',','.'));
+        if (!isNaN(v) && correct.some(c=>{
+          const tol = Math.abs(c)<1 ? 0.01 : Math.abs(c)<10 ? 0.05 : Math.max(0.5,Math.abs(c)*0.02);
+          return Math.abs(v-c)<=tol;
+        })) scoreB+=2;
+      }
+    }
+  });
+  return { scoreA, scoreB, total: Math.round((scoreA+scoreB)*10)/10 };
+}
+
+function showSummary() {
+  document.getElementById('screenQuestion').classList.add('hidden');
+  document.getElementById('screenSummary').classList.remove('hidden');
+
+  document.getElementById('summaryContent').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Część A</div>
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent);">? / 2</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Część B</div>
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent2);">? / 8</div>
+      </div>
+    </div>
+    <div style="background:var(--text);border-radius:10px;padding:16px;text-align:center;">
+      <div style="font-size:12px;color:#9ca3af;margin-bottom:4px;">Łączny wynik</div>
+      <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#fff;">? / 10</div>
+    </div>
+    <p style="margin-top:14px;font-size:13px;color:var(--muted);font-style:italic;">Znak <strong style="color:var(--text)">?</strong> oznacza, że wynik jest weryfikowany przez nauczyciela po wysłaniu.</p>
+  `;
+}
+
+
+let seconds=TEST_MINUTES*60, ended=false, timerInterval;
+function startTimer() {
+  updateTimer();
+  timerInterval = setInterval(updateTimer,1000);
+}
+function updateTimer() {
+  const m=String(Math.floor(seconds/60)).padStart(2,'0');
+  const s=String(seconds%60).padStart(2,'0');
+  const el=document.getElementById('timer');
+  el.textContent=m+':'+s;
+  el.className='timer';
+  if (seconds<=60)       el.classList.add('danger');
+  else if (seconds<=300) el.classList.add('warn');
+
+  if (seconds<=0) { clearInterval(timerInterval); autoTimeEnd(); }
+  seconds--;
+}
+
+
+function autoTimeEnd() {
+  if (ended) return;
+  ended = true;
+  clearInterval(timerInterval);
+  sendData('⌛ CZAS MINĄŁ');
+  document.getElementById('success').classList.add('show');
+  document.querySelector('#success .success-title').textContent = 'Czas minął!';
+  document.querySelector('#success .success-sub').textContent = 'Sprawdzian zakończony automatycznie. Twoje odpowiedzi zostały zapisane.';
+}
+
+// ── ANTI-CHEAT ────────────────────────────────
+
+let violations=0, lastViolation=0;
+document.addEventListener('visibilitychange',()=>{ if (document.hidden && !ended && testStarted) recordViolation(); });
+document.addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('keydown',e=>{
+  if (e.key==='F12'||(e.ctrlKey&&e.shiftKey&&['I','J','C'].includes(e.key))||(e.ctrlKey&&e.key==='U')) e.preventDefault();
+});
+
+function recordViolation() {
+  const now=Date.now();
+  if (now-lastViolation<2000) return;
+  lastViolation=now;
+  violations++;
+  document.getElementById('vCount').textContent=violations;
+  if (violations>=MAX_VIOLATIONS) {
+    endTest();
+  } else {
+    document.getElementById('attemptsLeft').textContent=MAX_VIOLATIONS-violations;
+    document.getElementById('overlay').classList.add('show');
+    const answered=answers.filter(Boolean).length;
+    const totalQ=allQuestions.length || 8;
+    sendData(`⚠️ NARUSZENIE ${violations} — w trakcie (${answered}/${totalQ})`);
+  }
+}
+
+function closeOverlay() { document.getElementById('overlay').classList.remove('show'); }
+
+function endTest() {
+  ended=true; clearInterval(timerInterval);
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('ended').classList.add('show');
+  sendData('⛔ ZABLOKOWANY');
+}
+
+// ── SUBMIT ────────────────────────────────────
+async function submitTest(auto=false) {
+  document.getElementById('btnSubmit').disabled=true;
+  document.getElementById('btnText').textContent='Wysyłanie...';
+
+ 
+  ended=true;
+  clearInterval(timerInterval);
+  const { scoreA, scoreB, total } = calcLocalScore();
+  
+  document.getElementById('summaryContent').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Część A</div>
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent);">${scoreA} / 2</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Część B</div>
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent2);">${scoreB} / 8</div>
+      </div>
+    </div>
+    <div style="background:var(--text);border-radius:10px;padding:16px;text-align:center;">
+      <div style="font-size:12px;color:#9ca3af;margin-bottom:4px;">Łączny wynik</div>
+      <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#fff;">${total} / 10</div>
+    </div>
+    <p style="margin-top:14px;font-size:12px;color:var(--accent2);font-style:italic;font-weight:600;">✅ Wyniki zostały wysłane do nauczyciela.</p>
+  `;
+  document.getElementById('btnSubmit').style.display='none';
+  document.querySelector('.submit-note').style.display='none';
+}
+</script>
+</body>
+</html>
